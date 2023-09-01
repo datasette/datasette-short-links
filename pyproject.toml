@@ -1,0 +1,30 @@
+[project]
+name = "datasette-short-links"
+version = "0.0.1a1"
+description = ""
+readme = "README.md"
+authors = [{name = "Alex Garcia"}]
+license = {text = "Apache-2.0"}
+classifiers = [
+    "License :: OSI Approved :: Apache Software License"
+]
+dependencies = ["datasette>=1.0a5", "python-ulid"]
+
+[project.urls]
+Homepage = "https://github.com/datasette/datasette-short-links"
+Changelog = "https://github.com/datasette/datasette-short-links/releases"
+Issues = "https://github.com/datasette/datasette-short-links/issues"
+CI = "https://github.com/datasette/datasette-short-links/actions"
+
+
+[project.entry-points.datasette]
+short_links = "datasette_short_links"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio"]
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.setuptools.package-data]
+datasette_short_links = ["static/*", "templates/*.html"]

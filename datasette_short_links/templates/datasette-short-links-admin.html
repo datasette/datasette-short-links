@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}datasette-short-links Admin Panel{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+<h1>datasette-short-links Admin Panel</h1>
+
+
+<h2>Links</h2>
+
+{% if links | length == 0 %}
+  <b>No links have been created yet.</b>
+{% else %}
+
+<table>
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>created_at</th>
+      <th>path</th>
+      <th>querystring</th>
+      <th>actor</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for link in links %}
+      <tr>
+        <td>
+          <a href="{{ link['url'] }}">{{ link["id"] }}</a></td>
+        <td>{{ link["created_at"] }}</td>
+        <td>{{ link["path"] }}</td>
+        <td>{{ link["querystring"] }}</td>
+        <td>{{ link["actor"] }}</td>
+        <td>
+
+        </td>
+      </tr>
+    {% endfor %}
+</table>
+
+{% endif %}
+
+<style>
+  td {
+    white-space: initial;
+  }
+</style>
+{% endblock %}
