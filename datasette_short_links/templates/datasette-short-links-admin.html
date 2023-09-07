@@ -15,37 +15,90 @@
   <b>No links have been created yet.</b>
 {% else %}
 
-<table>
+<table id="short-links">
   <thead>
     <tr>
-      <th>id</th>
-      <th>created_at</th>
-      <th>path</th>
-      <th>querystring</th>
-      <th>actor</th>
+      <th>ID</th>
+      <th>Created at</th>
+      <th>Actor</th>
+      <th>Path</th>
+      <th>Query parameters</th>
     </tr>
   </thead>
   <tbody>
     {% for link in links %}
-      <tr>
+      <tr data-id="{{ link["id"] }}" data-resolved_url="{{ link['resolved_url'] }}" data-short_url="{{ link['short_url'] }}">
         <td>
-          <a href="{{ link['url'] }}">{{ link["id"] }}</a></td>
-        <td>{{ link["created_at"] }}</td>
-        <td>{{ link["path"] }}</td>
-        <td>{{ link["querystring"] }}</td>
+          <pre>{{ link["id"] }}</pre>
+          <span class="copy"></span>
+          <span class="delete"></span>
+        </td>
+        <td><pre class="created-at">{{ link["created_at"] }}</pre></td>
         <td>{{ link["actor"] }}</td>
+        <td>{{ link["path"] }}</td>
         <td>
-
+          <div style="max-width: 200px; overflow: overlay;">{{ link["querystring"] }}</div>
         </td>
       </tr>
     {% endfor %}
 </table>
 
+<script>
+  const BASE_URL = {{ base_url | tojson}};
+  for (const row of document.querySelectorAll('#short-links tbody tr')) {
+    const linkId = row.dataset.id;
+    const linkResolvedUrl = row.dataset.resolved_url;
+    const linkShortUrl = row.dataset.short_url;
+
+    // change the created_at value into a timestamp
+    const createdAt = row.querySelector('.created-at');
+    const date = new Date(+createdAt.textContent);
+    createdAt.innerText = date.toISOString();
+
+    // create a delete button for each row
+    const spanDelete = row.querySelector('.delete');
+    const deleteButton = document.createElement("button");
+    deleteButton.innerText = "Delete";
+    deleteButton.addEventListener("click", () => {
+      const confirmed = window.confirm(`Are you sure you want to delete the ${linkId} link?`);
+      if(confirmed) {
+        fetch(`${BASE_URL}-/datasette-short-links/delete?link_id=${linkId}`, {
+          method: "DELETE",
+          // used to pass-through CSRF
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(() => {
+          window.location.reload();
+        })
+      }
+    });
+    spanDelete.appendChild(deleteButton);
+
+    // create a copy URL button for each row
+    const spanCopy = row.querySelector('.copy');
+    const copyButton = document.createElement("button");
+    copyButton.innerText = "Copy URL";
+    copyButton.addEventListener("click", () => {
+      const url = window.location.origin + linkShortUrl;
+      navigator.clipboard.writeText(url).then(() => {
+        copyButton.innerText = "Copied!";
+        setTimeout(() => (copyButton.innerText = "Copy URL"), 1000);
+    });
+    });
+    spanCopy.appendChild(copyButton);
+  }
+
+
+</script>
 {% endif %}
 
 <style>
   td {
     white-space: initial;
+  }
+  pre {
+    display: inline;
   }
 </style>
 {% endblock %}

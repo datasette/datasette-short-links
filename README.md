@@ -44,17 +44,3 @@ Now install the dependencies and test dependencies:
 To run the tests:
 
     pytest
-
-## TODO
-
-- [ ] auth admin panel
-- [ ] auth link creation (plugin configurable)
-- [ ] `created_at` in admin panel, timestamp + duration
-- [ ] plugin hook for other plugins
-- [ ] `register_subcommand()` for making a short link on-the-fly?
-- [ ] different UI for "Copy URL" button
-- [ ] "copy url" button in admin panel
-- [ ] `short-link-create` permission
-- [ ] `short-link-admin` permission
-- [ ] `passthrough_params` option + UI
-- [ ] csrf

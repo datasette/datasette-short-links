@@ -1,8 +1,12 @@
 async function main() {
+  const BASE_URL = window.DATASETTE_SHORT_LINKS_BASE_URL;
+  const SKIP_BUTTON = window.DATASETTE_SHORT_LINKS_SKIP_BUTTON;
+
+  if (SKIP_BUTTON) return;
   const button = document.createElement("button");
   button.innerText = "Copy URL";
   async function onClick() {
-    const response = await fetch("/abc/-/datasette-short-links/claim", {
+    const response = await fetch(`${BASE_URL}-/datasette-short-links/claim`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -14,7 +18,6 @@ async function main() {
     });
     const data = await response.json();
     const url = window.location.origin + data.url_path;
-    console.log(url);
     navigator.clipboard.writeText(url).then(() => {
       button.innerText = "Copied!";
       setTimeout(() => (button.innerText = "Copy URL"), 1000);
