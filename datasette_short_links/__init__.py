@@ -67,12 +67,16 @@ async def link_lookup(datasette, id: str) -> str:
         return None
     return base_url + row["path"] + row["querystring"]
 
-async def link_hit(datasette, id:str) -> str:
+
+async def link_hit(datasette, id: str) -> str:
     internal_db = datasette.get_internal_database()
+
     def update(conn):
         conn.execute(HIT_LINK_SQL, {"id": id})
         conn.commit()
+
     await internal_db.execute_write_fn(update)
+
 
 async def link_delete(datasette, id: str):
     """Given a link ID, delete it from the database"""
@@ -100,6 +104,15 @@ async def link_all(datasette) -> str:
                 "created_at": ULID.from_str(row["id"]).milliseconds,
             }
         )
+
+    actor_ids = set([link["actor"] for link in links])
+    actors = await datasette.actors_from_ids(actor_ids)
+    for link in links:
+        actor = actors.get(link["actor"])
+        if actor:
+            link["actor_name"] = actor.get("name") or actor.get("id")
+        else:
+            link["actor_name"] = link["actor"]
 
     return links
 

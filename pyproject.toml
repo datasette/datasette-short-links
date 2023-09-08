@@ -8,7 +8,7 @@ license = {text = "Apache-2.0"}
 classifiers = [
     "License :: OSI Approved :: Apache Software License"
 ]
-dependencies = ["datasette>=1.0a5", "python-ulid"]
+dependencies = ["datasette>=1.0a6", "python-ulid"]
 
 [project.urls]
 Homepage = "https://github.com/datasette/datasette-short-links"

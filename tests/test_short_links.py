@@ -1,7 +1,10 @@
+from datasette import hookimpl
 from datasette.app import Datasette
+from datasette.plugins import pm
 import pytest
 from ulid import ULID
 from datasette_short_links import link_all
+
 
 @pytest.mark.asyncio
 async def test_plugin_is_installed():
@@ -50,7 +53,6 @@ async def test_link_basic():
     assert len(all_links) == 1
     assert all_links[0].get("hits") == 2
     assert all_links[0].get("last_accessed_at") is not None
-
 
     response = await datasette.client.delete(
         f"/-/datasette-short-links/delete?link_id={str(id).lower()}",
@@ -157,3 +159,61 @@ async def test_admin_page():
         cookies={"ds_actor": datasette.sign({"a": {"id": "jasmine"}}, "actor")},
     )
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_admin_actor_names():
+    class ActorsFromIdsPlugin:
+        __name__ = "ActorsFromIdsPlugin"
+
+        @hookimpl
+        def actors_from_ids(self, datasette, actor_ids):
+            return {
+                "1": {"id": "1", "name": "Alex"},
+                "2": {"id": "2"},
+                "3": None,
+            }
+
+    try:
+        pm.register(ActorsFromIdsPlugin(), name="ActorsFromIdsPlugin")
+        datasette = Datasette(memory=True)
+        actors2 = await datasette.actors_from_ids(["1", "2", "3"])
+        print(actors2)
+        assert actors2 == {
+            "1": {"id": "1", "name": "Alex"},
+            "2": {"id": "2"},
+            "3": None,
+        }
+
+        await datasette.client.post(
+            "/-/datasette-short-links/claim",
+            json={"path": "/_memory.json", "querystring": "?sql=select+1;"},
+            cookies={"ds_actor": datasette.sign({"a": {"id": "1"}}, "actor")},
+        )
+        await datasette.client.post(
+            "/-/datasette-short-links/claim",
+            json={"path": "/_memory.json", "querystring": "?sql=select+1;"},
+            cookies={"ds_actor": datasette.sign({"a": {"id": "2"}}, "actor")},
+        )
+        await datasette.client.post(
+            "/-/datasette-short-links/claim",
+            json={"path": "/_memory.json", "querystring": "?sql=select+1;"},
+            cookies={"ds_actor": datasette.sign({"a": {"id": "3"}}, "actor")},
+        )
+
+        all_links = await link_all(datasette)
+        assert len(all_links) == 3
+
+        assert all_links[0].get("actor") == "1"
+        assert all_links[0].get("actor_name") == "Alex"
+
+        # fallbacks to id when no name
+        assert all_links[1].get("actor") == "2"
+        assert all_links[1].get("actor_name") == "2"
+
+        # fallbacks to id when no actor
+        assert all_links[2].get("actor") == "3"
+        assert all_links[2].get("actor_name") == "3"
+
+    finally:
+        pm.unregister(name="ReturnNothingPlugin")
