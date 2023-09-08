@@ -202,6 +202,7 @@ def register_routes():
 
 
 async def route_claim(scope, receive, datasette, request):
+    """Endpoint that 'claims' a short link. Requires short-links-create permissions."""
     if not await datasette.permission_allowed(
         request.actor, "short-links-create", default=False
     ):
@@ -222,6 +223,7 @@ async def route_claim(scope, receive, datasette, request):
 
 
 async def route_delete(scope, receive, datasette, request):
+    """Endpoint that deletes a short link. Requires short-links-admin permissions."""
     if not await datasette.permission_allowed(
         request.actor, "short-links-admin", default=False
     ):
@@ -237,6 +239,10 @@ async def route_delete(scope, receive, datasette, request):
 
 
 async def route_link(scope, receive, datasette, request):
+    """Endpoint that redirect a short link to the full URL. Require view-instance permissions."""
+    if not await datasette.permission_allowed(request.actor, "view-instance"):
+        raise Forbidden("Permission denied for view-instance")
+
     id = request.url_vars["id"]
     link = await link_lookup(datasette, id)
 
@@ -249,6 +255,7 @@ async def route_link(scope, receive, datasette, request):
 
 
 async def route_admin(scope, receive, datasette, request):
+    """Endpoint for the short-links admin page. Requires short-links-admin permissions."""
     if not await datasette.permission_allowed(
         request.actor, "short-links-admin", default=False
     ):

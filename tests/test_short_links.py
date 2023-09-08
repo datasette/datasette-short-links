@@ -217,3 +217,27 @@ async def test_admin_actor_names():
 
     finally:
         pm.unregister(name="ReturnNothingPlugin")
+
+
+@pytest.mark.asyncio
+async def test_link_view_instance():
+    # only the root user has view-instance permissions!
+    datasette = Datasette(memory=True, metadata={"allow": {"id": "root"}})
+    response = await datasette.client.post(
+        "/-/datasette-short-links/claim",
+        json={"path": "/_memory.json", "querystring": "?sql=select+1;"},
+        cookies={"ds_actor": datasette.sign({"a": {"id": "root"}}, "actor")},
+    )
+    assert response.status_code == 200
+    expected_link = f"/-/l/{response.json()['id']}"
+
+    # anon users should be forbidden to see the link, in this instance
+    response = await datasette.client.get(expected_link)
+    assert response.status_code == 403
+
+    # But root should be able to
+    response = await datasette.client.get(
+        expected_link,
+        cookies={"ds_actor": datasette.sign({"a": {"id": "root"}}, "actor")},
+    )
+    assert response.status_code == 302
