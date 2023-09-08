@@ -7,7 +7,9 @@ CREATE_LINKS_SQL = """
     id ULID PRIMARY KEY,
     path TEXT,
     querystring TEXT,
-    actor TEXT
+    actor TEXT,
+    hits INT,
+    last_accessed_at DATETIME
   )
 """
 
@@ -15,9 +17,11 @@ LOOKUP_LINK_SQL = "SELECT * FROM datasette_short_links_links WHERE id = :id"
 
 DELETE_LINK_SQL = "DELETE FROM datasette_short_links_links WHERE id = :id"
 
+HIT_LINK_SQL = "UPDATE datasette_short_links_links SET hits = hits + 1, last_accessed_at = datetime('now') WHERE id = :id"
+
 INSERT_LINK = """
-  INSERT INTO datasette_short_links_links(id, path, querystring, actor)
-  VALUES (:id, :path, :querystring, :actor)
+  INSERT INTO datasette_short_links_links(id, path, querystring, actor, hits)
+  VALUES (:id, :path, :querystring, :actor, 0)
 """
 
 ALL_LINKS_SQL = "SELECT * FROM datasette_short_links_links"
@@ -63,6 +67,12 @@ async def link_lookup(datasette, id: str) -> str:
         return None
     return base_url + row["path"] + row["querystring"]
 
+async def link_hit(datasette, id:str) -> str:
+    internal_db = datasette.get_internal_database()
+    def update(conn):
+        conn.execute(HIT_LINK_SQL, {"id": id})
+        conn.commit()
+    await internal_db.execute_write_fn(update)
 
 async def link_delete(datasette, id: str):
     """Given a link ID, delete it from the database"""
@@ -219,6 +229,8 @@ async def route_link(scope, receive, datasette, request):
 
     if link is None:
         return Response.text("not found", status=404)
+
+    await link_hit(datasette, id)
 
     return Response.redirect(link)
 

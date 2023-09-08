@@ -20,6 +20,8 @@
     <tr>
       <th>ID</th>
       <th>Created at</th>
+      <th>Hits</th>
+      <th>Last Accessed</th>
       <th>Actor</th>
       <th>Path</th>
       <th>Query parameters</th>
@@ -34,6 +36,8 @@
           <span class="delete"></span>
         </td>
         <td><pre class="created-at">{{ link["created_at"] }}</pre></td>
+        <td><pre class="created-at">{{ link["hits"] }}</pre></td>
+        <td><pre class="created-at">{{ link["last_accessed_at"] or '' }}</pre></td>
         <td>{{ link["actor"] }}</td>
         <td>{{ link["path"] }}</td>
         <td>
@@ -94,6 +98,9 @@
 {% endif %}
 
 <style>
+  th {
+    font-weight: 700;
+  }
   td {
     white-space: initial;
   }

@@ -1,8 +1,7 @@
 from datasette.app import Datasette
 import pytest
-import json
 from ulid import ULID
-
+from datasette_short_links import link_all
 
 @pytest.mark.asyncio
 async def test_plugin_is_installed():
@@ -28,9 +27,30 @@ async def test_link_basic():
     expected_link = f"/-/l/{str(id).lower()}"
     assert data["url_path"] == expected_link
 
+    # Should only be 1 link in the DB, with no hits
+    all_links = await link_all(datasette)
+    assert len(all_links) == 1
+    assert all_links[0].get("hits") == 0
+    assert all_links[0].get("last_accessed_at") == None
+
     response = await datasette.client.get(expected_link)
     assert response.status_code == 302
     assert response.headers.get("location") == "/_memory.json?sql=select+1;"
+
+    # Now there should be 1 hit
+    all_links = await link_all(datasette)
+    assert len(all_links) == 1
+    assert all_links[0].get("hits") == 1
+    assert all_links[0].get("last_accessed_at") is not None
+
+    # try 2 hits!
+    response = await datasette.client.get(expected_link)
+    assert response.status_code == 302
+    all_links = await link_all(datasette)
+    assert len(all_links) == 1
+    assert all_links[0].get("hits") == 2
+    assert all_links[0].get("last_accessed_at") is not None
+
 
     response = await datasette.client.delete(
         f"/-/datasette-short-links/delete?link_id={str(id).lower()}",
