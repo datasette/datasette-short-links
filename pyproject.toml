@@ -21,7 +21,7 @@ CI = "https://github.com/datasette/datasette-short-links/actions"
 short_links = "datasette_short_links"
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-asyncio"]
+test = ["pytest", "pytest-asyncio", "typing-extensions"]
 
 [tool.setuptools.packages.find]
 namespaces = false
