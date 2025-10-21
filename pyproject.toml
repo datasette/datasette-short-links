@@ -1,6 +1,6 @@
 [project]
 name = "datasette-short-links"
-version = "0.0.1a5"
+version = "0.0.1a6"
 description = ""
 readme = "README.md"
 authors = [{name = "Alex Garcia"}]
@@ -8,7 +8,7 @@ license = {text = "Apache-2.0"}
 classifiers = [
     "License :: OSI Approved :: Apache Software License"
 ]
-dependencies = ["datasette>=1.0a6", "python-ulid"]
+dependencies = ["datasette==1.0a19", "python-ulid"]
 
 [project.urls]
 Homepage = "https://github.com/datasette/datasette-short-links"
